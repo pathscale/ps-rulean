@@ -1,15 +1,19 @@
 [package]
-name = "lean-syn-expr"
+name = "ps-lean-syn-expr"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
 
 [dependencies]
-eterned = { path = "../../abstractions/eterned" }
+eterned = { package = "ps-eterned", path = "../../abstractions/eterned" }
 
 smallvec = { workspace = true }
 indexmap = { workspace = true }
+
+[lib]
+name = "lean_syn_expr"
+path = "src/lib.rs"
 
 [dev-dependencies]
 expect-test = { workspace = true }

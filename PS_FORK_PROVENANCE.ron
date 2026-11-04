@@ -1,0 +1,13 @@
+(
+    package: "ps-rulean",
+    upstream_url: "https://github.com/xiyuzhai/rulean.git",
+    upstream_commit: "33a5f1b72d2f9ceb13514ea0f8b911928ebf68d8",
+    license: "MIT OR Apache-2.0",
+    edition: "2024",
+    house_adaptations: [
+        "Renamed package to ps-* prefix with original [lib] crate name",
+        "Upgraded to Rust edition 2024 with caret (^) dependency versions and zero Cargo.lock",
+        "Stripped all C/C++/Fortran/WASM/Python/LSP/CLI bindings (libc permitted as sole OS exception)",
+        "Stripped rayon, tokio, parking_lot, and mimalloc for nagoya/ps-st3 concurrency",
+    ],
+)

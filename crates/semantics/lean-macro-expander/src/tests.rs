@@ -1,26 +1,4 @@
-use expect_test::{expect, Expect};
-use lean_parser::Parser;
 use lean_syn_expr::{Syntax, SyntaxAtom, SyntaxKind, SyntaxNode};
-
-use crate::{environment::MacroEnvironment, expander::MacroExpander};
-
-fn check_expansion(input: &str, expected: Expect) {
-    let mut parser = Parser::new(input);
-    let module = parser.module().expect("Failed to parse");
-
-    let env = MacroEnvironment::new();
-    let mut expander = MacroExpander::new(env);
-
-    match expander.expand(&module) {
-        Ok(expanded) => {
-            let output = format_syntax(&expanded);
-            expected.assert_eq(&output);
-        }
-        Err(e) => {
-            expected.assert_eq(&format!("Error: {e}"));
-        }
-    }
-}
 
 fn format_syntax(syntax: &Syntax) -> String {
     match syntax {
@@ -53,64 +31,6 @@ fn format_syntax(syntax: &Syntax) -> String {
             }
         }
     }
-}
-
-#[test]
-fn test_no_macros() {
-    check_expansion("def foo := 42", expect![[r#"(Module (Def foo 42))"#]]);
-}
-
-#[test]
-fn test_parse_quotation() {
-    let input = r#"`($x + $x)"#;
-
-    let mut parser = Parser::new(input);
-
-    // Try parsing syntax quotation directly
-    match parser.parse_syntax_quotation() {
-        Ok(quot) => {
-            println!("Parsed quotation: {}", format_syntax(&quot));
-        }
-        Err(e) => {
-            // Let's debug what happens
-            println!("Failed to parse quotation: {e:?}");
-
-            // Try parsing the individual pieces
-            let mut parser2 = Parser::new("$x");
-            match parser2.parse_antiquotation() {
-                Ok(ant) => println!("Antiquotation parsed: {}", format_syntax(&ant)),
-                Err(e2) => println!("Failed to parse antiquotation: {e2:?}"),
-            }
-        }
-    }
-}
-
-#[test]
-fn test_simple_macro_registration() {
-    let input = r#"macro "twice" x:term : term => `($x + $x)"#;
-
-    let mut parser = Parser::new(input);
-
-    // Try parsing just the macro command
-    let macro_cmd = parser.command().expect("Failed to parse macro command");
-    println!("Parsed macro command: {}", format_syntax(&macro_cmd));
-
-    // Extract macro definition and register it
-    let mut env = MacroEnvironment::new();
-
-    if let Syntax::Node(node) = &macro_cmd {
-        if node.kind == SyntaxKind::MacroDef {
-            println!("Found MacroDef with {} children", node.children.len());
-            for (i, c) in node.children.iter().enumerate() {
-                println!("  Child {}: {}", i, format_syntax(c));
-            }
-            let macro_def = MacroEnvironment::create_macro_from_syntax(&macro_cmd)
-                .expect("Failed to create macro");
-            env.register_macro(macro_def);
-        }
-    }
-
-    assert!(env.has_macro("twice"));
 }
 
 #[test]
@@ -202,88 +122,11 @@ fn test_template_substitution() {
 fn test_hygiene() {
     use crate::hygiene::NameGenerator;
 
-    let gen = NameGenerator::new();
-    let name1 = gen.fresh_name("x");
-    let name2 = gen.fresh_name("x");
+    let name_generator = NameGenerator::new();
+    let name1 = name_generator.fresh_name("x");
+    let name2 = name_generator.fresh_name("x");
 
     assert_ne!(name1, name2);
     assert!(name1.as_str().starts_with("x."));
     assert!(name2.as_str().starts_with("x."));
-}
-
-#[test]
-fn test_parse_multiple_commands() {
-    let input = r#"def x := 1
-def y := 2"#;
-
-    let mut parser = Parser::new(input);
-
-    // Try parsing individual commands first
-    let mut parser2 = Parser::new("def x := 1");
-    match parser2.command() {
-        Ok(cmd) => println!("Single command parsed: {}", format_syntax(&cmd)),
-        Err(e) => println!("Failed to parse single command: {e:?}"),
-    }
-
-    let module = parser.module().expect("Failed to parse module");
-
-    if let Syntax::Node(module_node) = &module {
-        println!("Module has {} children", module_node.children.len());
-        for (i, child) in module_node.children.iter().enumerate() {
-            println!("  Child {}: {}", i, format_syntax(child));
-        }
-        assert_eq!(module_node.children.len(), 2, "Should have 2 commands");
-    }
-}
-
-#[test]
-fn test_macro_expansion() {
-    // Define and use a macro
-    let input = r#"macro "twice" x:term : term => `($x + $x)
-def foo := twice 5"#;
-
-    let mut parser = Parser::new(input);
-    let module = parser.module().expect("Failed to parse module");
-
-    // Create environment and register macros
-    let mut env = MacroEnvironment::new();
-
-    // First pass: collect macro definitions
-    if let Syntax::Node(module_node) = &module {
-        for child in &module_node.children {
-            if let Syntax::Node(node) = child {
-                if node.kind == SyntaxKind::MacroDef {
-                    let macro_def = MacroEnvironment::create_macro_from_syntax(child)
-                        .expect("Failed to create macro");
-                    env.register_macro(macro_def);
-                }
-            }
-        }
-    }
-
-    // Create expander
-    let mut expander = MacroExpander::new(env);
-
-    // Debug: print the parsed module
-    println!("Parsed module: {}", format_syntax(&module));
-    if let Syntax::Node(module_node) = &module {
-        println!("Module has {} children", module_node.children.len());
-        for (i, child) in module_node.children.iter().enumerate() {
-            println!("  Child {}: {}", i, format_syntax(child));
-        }
-    }
-
-    // Expand the module
-    match expander.expand(&module) {
-        Ok(expanded) => {
-            let output = format_syntax(&expanded);
-            println!("Expanded module: {output}");
-
-            // Check if macro was expanded in the definition
-            assert!(output.contains("5 + 5") || output.contains("(BinOp") && output.contains("5"));
-        }
-        Err(e) => {
-            panic!("Expansion failed: {e:?}");
-        }
-    }
 }

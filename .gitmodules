@@ -1,9 +1,0 @@
-[submodule "test-data/mathlib4"]
-	path = test-data/mathlib4
-	url = https://github.com/leanprover-community/mathlib4.git
-[submodule "test-data/lean4"]
-	path = test-data/lean4
-	url = https://github.com/leanprover/lean4.git
-[submodule "reference/rust-analyzer"]
-	path = reference/rust-analyzer
-	url = https://github.com/rust-lang/rust-analyzer.git

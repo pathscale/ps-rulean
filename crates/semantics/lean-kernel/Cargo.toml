@@ -1,17 +1,21 @@
 [package]
-name = "lean-kernel"
+name = "ps-lean-kernel"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
 
 [dependencies]
-eterned = { path = "../../abstractions/eterned" }
-lean-syn-expr = { path = "../../syntax/lean-syn-expr" }
+eterned = { package = "ps-eterned", path = "../../abstractions/eterned" }
+lean-syn-expr = { package = "ps-lean-syn-expr", path = "../../syntax/lean-syn-expr" }
 
 thiserror = { workspace = true }
 smallvec = { workspace = true }
 indexmap = { workspace = true }
+
+[lib]
+name = "lean_kernel"
+path = "src/lib.rs"
 
 [dev-dependencies]
 expect-test = { workspace = true }
