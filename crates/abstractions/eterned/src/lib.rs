@@ -1,6 +1,8 @@
-use std::sync::Arc;
+use std::{
+    collections::HashMap,
+    sync::{Arc, RwLock},
+};
 
-use dashmap::DashMap;
 pub use eterned_macros::eterned;
 use once_cell::sync::Lazy;
 use sha2::{Digest, Sha512};
@@ -9,17 +11,21 @@ pub static ETERNER_DB: Lazy<EternerDb> = Lazy::new(EternerDb::default);
 
 #[derive(Default)]
 pub struct EternerDb {
-    strings: DashMap<String, Arc<String>>,
+    strings: RwLock<HashMap<String, Arc<String>>>,
 }
 
 impl EternerDb {
     pub fn intern(&self, s: impl Into<String>) -> Arc<String> {
         let s = s.into();
-        if let Some(interned) = self.strings.get(&s) {
+        if let Some(interned) = self.strings.read().unwrap().get(&s) {
+            return interned.clone();
+        }
+        let mut write_guard = self.strings.write().unwrap();
+        if let Some(interned) = write_guard.get(&s) {
             interned.clone()
         } else {
             let arc = Arc::new(s.clone());
-            self.strings.insert(s, arc.clone());
+            write_guard.insert(s, arc.clone());
             arc
         }
     }
