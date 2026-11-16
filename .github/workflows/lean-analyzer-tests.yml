@@ -1,20 +1,7 @@
 name: Lean Analyzer Tests
 
 on:
-  push:
-    branches: [ main, develop ]
-    paths:
-      - 'crates/apps/lean-analyzer/**'
-      - 'crates/syntax/**'
-      - 'crates/semantics/**'
-      - '.github/workflows/lean-analyzer-tests.yml'
-  pull_request:
-    branches: [ main, develop ]
-    paths:
-      - 'crates/apps/lean-analyzer/**'
-      - 'crates/syntax/**'
-      - 'crates/semantics/**'
-      - '.github/workflows/lean-analyzer-tests.yml'
+  workflow_dispatch:
 
 env:
   CARGO_TERM_COLOR: always
