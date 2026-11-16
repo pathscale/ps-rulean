@@ -1,16 +1,7 @@
 name: Editor Integrations CI
 
 on:
-  push:
-    branches: [ main, develop ]
-    paths:
-      - 'editors/**'
-      - '.github/workflows/editors.yml'
-  pull_request:
-    branches: [ main, develop ]
-    paths:
-      - 'editors/**'
-      - '.github/workflows/editors.yml'
+  workflow_dispatch:
 
 jobs:
   vscode-extension:
