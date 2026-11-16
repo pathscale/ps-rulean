@@ -62,3 +62,4 @@ editors/vscode/.vscode-test/
 
 # Disabled benchmarks
 crates/apps/lean-analyzer/benches.disabled/
+Cargo.lock
